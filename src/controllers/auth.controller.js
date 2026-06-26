@@ -13,13 +13,15 @@ class AuthController {
         email,
         // username,
         // full_name,
-        // password,
+        password,
         // workspace_id,
       });
 
       // Set token in cookie for better security
       // this.setTokenCookie(res, result.token);
       AuthController.setTokenCookie(res, result.token);
+
+      console.log('result -----> 24',result)
 
       res.status(201).json({
         success: true,
@@ -33,6 +35,7 @@ class AuthController {
       });
     } catch (error) {
       next(error);
+      console.log('Error -----> 36',error)
     }
   }
 

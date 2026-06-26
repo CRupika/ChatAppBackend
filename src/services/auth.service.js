@@ -8,7 +8,8 @@ import logger from '../utils/logger.js';
 class AuthService {
   // Signup logic (Slack-style)
   static async signup(userData) {
-    const { email,username, full_name, password, workspace_id } = userData;
+    // const { email,username, full_name, password, workspace_id } = userData;
+    const { email,password } = userData;
 
     // Check if user exists
     const existingUser = await UserModel.findByEmail(email);
@@ -25,7 +26,7 @@ class AuthService {
       email,
       // username, 
       // full_name,
-      // password_hash,
+      password_hash,
       // workspace_id,
     });
 

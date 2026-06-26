@@ -43,13 +43,13 @@ class UserModel {
     //   RETURNING id, username, email, full_name, created_at
     // `;
     // const result = await pool.query(query, [username, email, password_hash, full_name]);
-     const { email} = userData;
+     const { email,password_hash} = userData;
     const query = `
-      INSERT INTO users (email,created_at, updated_at)
-      VALUES ($1, NOW(), NOW())
+      INSERT INTO users (email,password_hash,created_at, updated_at)
+      VALUES ($1,$2, NOW(), NOW())
       RETURNING id,email, created_at
     `;
-    const result = await pool.query(query, [email]);
+    const result = await pool.query(query, [email,password_hash]);
     return result.rows[0];
   }
 

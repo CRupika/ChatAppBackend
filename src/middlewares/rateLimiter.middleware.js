@@ -93,6 +93,7 @@ export const authRateLimit = rateLimit({
 
 export const signupRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 signups per hour
+  // max: 5, // 5 signups per hour
+  max: 100, // 1 signups per hour
   message: 'Too many signup attempts. Please try again later.',
 });

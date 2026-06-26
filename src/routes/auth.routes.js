@@ -16,10 +16,10 @@ const router = express.Router();
 
 // Public routes with rate limiting
 router.post('/signup', 
-  // signupRateLimit,
+  signupRateLimit,
   sanitizeInput,
   validateSignup,
-  validateWorkspace,
+  // validateWorkspace,
   AuthController.signup
 );
 
