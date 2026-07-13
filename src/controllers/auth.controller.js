@@ -11,7 +11,7 @@ class AuthController {
 
       const result = await AuthService.signup({
         email,
-        // username,
+        username,
         // full_name,
         password,
         // workspace_id,
@@ -54,6 +54,7 @@ class AuthController {
         message: 'Login successful',
         data: {
           user: result.user,
+          token: result.token,   
           is_new_user: result.is_new_user,
         },
       });

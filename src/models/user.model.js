@@ -43,13 +43,19 @@ class UserModel {
     //   RETURNING id, username, email, full_name, created_at
     // `;
     // const result = await pool.query(query, [username, email, password_hash, full_name]);
-     const { email,password_hash} = userData;
+
+    const { email, password_hash,username } = userData;
+
+    console.log('userData ----- CREATE ------> 49',userData)
+    // const { email,password} = userData;
+
     const query = `
-      INSERT INTO users (email,password_hash,created_at, updated_at)
-      VALUES ($1,$2, NOW(), NOW())
-      RETURNING id,email, created_at
+      INSERT INTO users (email,password_hash,username,created_at, updated_at)
+      VALUES ($1,$2,$3, NOW(), NOW())
+      RETURNING id,email,username, created_at
     `;
-    const result = await pool.query(query, [email,password_hash]);
+    const result = await pool.query(query, [email, password_hash,username]);
+    // const result = await pool.query(query, [email,password]);
     return result.rows[0];
   }
 
@@ -61,7 +67,7 @@ class UserModel {
 
 
   static async updateLoginAttempts(email, attempts) {
-    const lockUntil = attempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000) : null; // lock 30 mins after 5 fails
+    const lockUntil = attempts >= 50 ? new Date(Date.now() + 30 * 60 * 1000) : null; // lock 30 mins after 5 fails
 
     const query = `
     UPDATE users 
@@ -76,27 +82,79 @@ class UserModel {
   }
 
   static async resetLoginAttempts(email) {
-  //   const query = `
-  //   UPDATE users
-  //   SET login_attempts = 0,
-  //       locked_until = NULL,
-  //       last_login = NOW(),
-  //       updated_at = NOW()
-  //   WHERE email = $1
-  //   RETURNING id, email, full_name, workspace_id, is_verified, last_login
-  // `;
-   const query = `
+    //   const query = `
+    //   UPDATE users
+    //   SET login_attempts = 0,
+    //       locked_until = NULL,
+    //       last_login = NOW(),
+    //       updated_at = NOW()
+    //   WHERE email = $1
+    //   RETURNING id, email, full_name, workspace_id, is_verified, last_login
+    // `;
+    const query = `
     UPDATE users
     SET login_attempts = 0,
         locked_until = NULL,
         last_login = NOW(),
         updated_at = NOW()
     WHERE email = $1
-    RETURNING id, email, full_name, is_verified, last_login
+    RETURNING id, email, full_name,username, is_verified, last_login
   `;
     const result = await pool.query(query, [email]);
     return result.rows[0];
   }
+
+  static async findById(id) {
+
+    const query = `
+            SELECT *
+            FROM users
+            WHERE id = $1
+            LIMIT 1;
+        `;
+
+    const result = await pool.query(query, [id]);
+
+    return result.rows[0];
+  }
+
+   static async getUsers(loggedInUserId) {
+
+    console.log('loggedInUserId ---> 121',loggedInUserId)
+
+        const query = `
+            SELECT
+                id,
+                username,
+                email
+            FROM users
+            WHERE id != $1
+            ORDER BY email ASC;
+        `;
+
+        const result = await pool.query(query, [
+            loggedInUserId
+        ]);
+
+        return result.rows;
+    }
+
+    static async getUserById(id) {
+
+        const query = `
+            SELECT
+                id,
+                username,
+                email
+            FROM users
+            WHERE id = $1;
+        `;
+
+        const result = await pool.query(query, [id]);
+
+        return result.rows[0];
+    }
+
 }
 
 export default UserModel

@@ -7,11 +7,18 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
+// import messageRoutes from './routes/message.routes.js';
+import workspaceRoutes from "./routes/workspace.routes.js";
 // import userRoutes from './routes/user.routes.js';
 import { errorHandler, notFoundHandler } from './utils/errorHandler.js';
 import { rateLimit } from './middlewares/rateLimiter.middleware.js';
 import UserModel from './models/user.model.js';
 import logger from './utils/logger.js';
+import channelRoutes from './routes/channel.route.js';
+import channelMemberRoutes from './routes/channelMember.route.js'
+import conversationRoutes from './routes/conversation.routes.js'
+import directMessageRoutes from './routes/directMessage.route.js'
+import userRoutes from "./routes/user.route.js";
 
 
 dotenv.config();
@@ -67,7 +74,13 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+// app.use("/api", messageRoutes);
+app.use("/api", workspaceRoutes);
+app.use("/api", channelRoutes);
+app.use("/api",channelMemberRoutes);
+app.use("/api",conversationRoutes)
+app.use("/api", directMessageRoutes);
+app.use("/api", userRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

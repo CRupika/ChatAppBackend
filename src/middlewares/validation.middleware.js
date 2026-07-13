@@ -3,7 +3,7 @@ import validator from 'validator';
 
 // Validate signup (Slack-style)
 export const validateSignup = (req, res, next) => {
-  const { email, full_name, password } = req.body;
+  const { email, full_name, password,username } = req.body;
 
   const errors = [];
 
@@ -14,6 +14,17 @@ export const validateSignup = (req, res, next) => {
     errors.push('Please provide a valid email address');
   } else if (email.length > 255) {
     errors.push('Email is too long');
+  }
+
+
+  if (!username) {
+    errors.push("Full name is required");
+  } else if (username?.length < 3) {
+    errors.push("Full name must be at least 3 characters");
+  } else if (username?.length > 50) {
+    errors.push("Full name cannot exceed 50 characters");
+  } else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(username)) {
+    errors.push("Full name can only contain letters and spaces");
   }
 
   // Password validation (Slack-style requirements)

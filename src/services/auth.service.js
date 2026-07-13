@@ -4,30 +4,36 @@ import crypto from 'crypto';
 import UserModel from '../models/user.model.js';
 import { AppError } from '../utils/errorHandler.js';
 import logger from '../utils/logger.js';
+import { encryptUsingAES256, decryptUsingAES256 } from '../utils/encryption.js'
 
 class AuthService {
-  // Signup logic (Slack-style)
+  
   static async signup(userData) {
-    // const { email,username, full_name, password, workspace_id } = userData;
-    const { email,password } = userData;
+    const { email, password,username } = userData;
 
-    // Check if user exists
+    console.log('userData ----> 14',userData)
+
     const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
       throw new AppError('This email is already registered', 409);
     }
 
+    const plainPassword = decryptUsingAES256(password);
+
+    console.log('plainPassword ---- SIGNUP ----> 97', plainPassword);
+    console.log('password ---- SIGNUP ----> 98', password);
+
     // Hash password
     const saltRounds = 12;
-    const password_hash = await bcrypt.hash(password, saltRounds);
+    const password_hash = await bcrypt.hash(plainPassword ? plainPassword : password, saltRounds);
+
+    console.log('password_hash ---- SIGNUP ----> 97', password_hash);
 
     // Create user
     const newUser = await UserModel.create({
       email,
-      // username, 
-      // full_name,
       password_hash,
-      // workspace_id,
+      username
     });
 
     // Generate verification token
@@ -43,8 +49,7 @@ class AuthService {
       user: {
         id: newUser.id,
         email: newUser.email,
-        // full_name: newUser.full_name,
-        // workspace_id: newUser.workspace_id,
+        username:newUser.newUser,
         is_verified: newUser.is_verified,
         created_at: newUser.created_at,
       },
@@ -73,17 +78,23 @@ class AuthService {
       );
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    console.log('password ---- SIGN IN ----> 427', password);
+
+    const plainPassword = decryptUsingAES256(password);
+
+    console.log('plainPassword ---- SIGN IN ----> 431', plainPassword);
+
+    const isPasswordValid = await bcrypt.compare(plainPassword, user.password_hash);
+
     if (!isPasswordValid) {
       // Increment login attempts
       const attempts = (user.login_attempts || 0) + 1;
       await UserModel.updateLoginAttempts(email, attempts);
 
-      const remainingAttempts = 5 - attempts;
+      const remainingAttempts = 50 - attempts;
       throw new AppError(
         remainingAttempts > 0
-          ? `Invalid credentials. ${remainingAttempts} attempts remaining`
+          ? `Invalid credentials. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining`
           : 'Account locked. Too many failed attempts',
         401
       );
@@ -101,7 +112,7 @@ class AuthService {
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
-        full_name: updatedUser.full_name,
+        user_name: updatedUser.username,
         workspace_id: updatedUser.workspace_id,
         is_verified: updatedUser.is_verified,
         last_login: updatedUser.last_login,
@@ -114,13 +125,13 @@ class AuthService {
   // Generate JWT Token
   static generateToken(userId, email) {
     return jwt.sign(
-      { 
-        userId, 
+      {
+        userId,
         email,
         iat: Math.floor(Date.now() / 1000)
       },
       process.env.JWT_SECRET,
-      { 
+      {
         expiresIn: process.env.JWT_EXPIRY || '7d',
         algorithm: 'HS256'
       }
@@ -138,17 +149,14 @@ class AuthService {
 
   // Verify user email
   static async verifyEmail(token) {
-    // Implementation would validate token and verify user
-    // This is a simplified version
     return { success: true, message: 'Email verified' };
   }
 
-  // Refresh token
   static async refreshToken(oldToken) {
     try {
       const decoded = jwt.verify(oldToken, process.env.JWT_SECRET);
       const user = await UserModel.findById(decoded.userId);
-      
+
       if (!user) {
         throw new AppError('User not found', 404);
       }

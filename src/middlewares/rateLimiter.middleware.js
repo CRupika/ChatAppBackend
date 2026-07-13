@@ -87,7 +87,7 @@ export const rateLimit = (options = {}) => {
 // Specific rate limiters for auth routes
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
+  max: 100, // 100 attempts per 15 minutes
   message: 'Too many authentication attempts. Please try again later.',
 });
 

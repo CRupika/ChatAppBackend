@@ -20,6 +20,8 @@ export const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      console.log('decoded ---> 23',decoded)
+
       // Check if user still exists
       const user = await UserModel.findById(decoded.userId);
       if (!user) {
@@ -31,6 +33,8 @@ export const protect = async (req, res, next) => {
       req.userId = decoded.userId;
       next();
     } catch (error) {
+       console.log("JWT Verify Error:", error);
+       console.log("JWT Secret:", process.env.JWT_SECRET);
       if (error.name === 'TokenExpiredError') {
         return next(new AppError('Token expired. Please login again', 401));
       }
@@ -83,3 +87,44 @@ export const requireVerified = async (req, res, next) => {
 //     next();
 //   }
 // };
+
+
+export const authenticate = (req, res, next) => {
+
+  console.log('req -----> 90', req)
+  console.log('res ------> 91', res)
+
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      success: false,
+      message: "Access token is required."
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  console.log('token -----> 104', token)
+
+  try {
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    console.log('decoded ----> 110', decoded)
+
+    req.user = decoded;
+
+    console.log('req.user ----> 112', req.user)
+
+    next();
+
+  } catch (error) {
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token."
+    });
+
+  }
+};
